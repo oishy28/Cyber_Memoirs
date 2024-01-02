@@ -1,0 +1,137 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Page</title>
+</head>
+<body>
+    <h1>Registration</h1>
+    <form action="/register" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+        
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        
+        <input type="submit" value="Register">
+    </form>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Page</title>
+    
+    <!-- Include sweetAlert library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    
+    <script>
+        async function handleRegistration() {
+            // Your registration logic here (e.g., form submission)
+            const form = document.getElementById('registrationForm');
+            
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: form.username.value,
+                        email: form.email.value,
+                        password: form.password.value,
+                    }),
+                });
+
+                const result = await response.json();
+
+                // Show a pop-up message based on the result
+                if (result.error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Registration Failed',
+                        text: result.error.join('\n'),
+                    });
+                } else if (result.message) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registration Successful',
+                        text: result.message,
+                    });
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Registration Failed',
+                    text: 'An error occurred during registration. Please try again.',
+                });
+            }
+        }
+    </script>
+        <style>
+            body {
+                text-align: center;
+            }
+            h1 {
+                font-weight: bold;
+                font-size: 36px;
+            }
+            form {
+                display: inline-block;
+                text-align: left;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+            label {
+                display: block;
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+            input {
+                width: 100%;
+                padding: 10px;
+                font-size: 16px;
+                margin-bottom: 16px;
+            }
+            input[type="submit"] {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            button {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+        </style>
+</head>
+<body>
+    <h1>Registration</h1>
+    <form id="registrationForm" onsubmit="event.preventDefault(); handleRegistration();">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+        
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        
+        <input type="submit" value="Register">
+    </form>
+
+
+    <button onclick="location.href='/login'">Login</button>
+</body>
+</html>

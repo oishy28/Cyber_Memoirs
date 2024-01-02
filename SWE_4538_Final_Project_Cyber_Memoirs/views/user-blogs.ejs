@@ -1,0 +1,73 @@
+
+<!-- user-blogs.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Blogs</title>
+</head>
+<body>
+  <h1>Your Blogs</h1>
+  
+  <% userBlogs.forEach(blog => { %>
+    <div>
+      <h2><%= blog.title %></h2>
+      <p>Category: <%= blog.category %></p>
+      <p>Description: <%= blog.desc %></p>
+      <p>Likes: <%= blog.likes.length %></p>
+      <p>Comments: <%= blog.comments.length %></p>
+
+      <p>Author: <%= blog.user_id.name %></p>
+      <% if (blog.Blog_album.length > 0) { %>
+        <% blog.Blog_album.forEach(image => { %>
+          <img src="/uploads/images/<%=image%>" alt="Blog Image">
+        <% }); %>
+      <% } %>
+      
+      <form action="/update-blog/<%= blog._id %>" method="post" enctype="multipart/form-data">
+        <!-- Add input fields and submit button for updating -->
+        <input type="text" name="updatedTitle" placeholder="New Title">
+        <input type="text" name="updatedCategory" placeholder="New Category">
+        <textarea name="updatedDescription" placeholder="New Description"></textarea>
+        
+        <!-- Input field for image upload -->
+        <input type="file" name="updatedImage" accept="image/*">
+        
+        <button type="submit">Update</button>
+      </form>
+      
+      <form action="/delete-blog/<%= blog._id %>" method="post" onsubmit="return confirm('Are you sure you want to delete this blog?');" method="DELETE">    
+        <!-- Add a CSRF token for security -->
+        <button type="submit">Delete</button>
+      </form>
+      <script>
+        function confirmAndDelete(blogId) {
+          const confirmation = confirm('Are you sure you want to delete this blog?');
+        
+          if (confirmation) {
+            fetch(`/delete-blog/${blogId}`, {
+              method: 'DELETE',
+              // Additional headers or credentials if needed
+            })
+            .then(response => response.json())
+            .then(data => {
+              // Handle the response, if needed
+              console.log(data);
+              // Optionally, you can update the UI or perform other actions after deletion
+              location.reload(); // Reload the page to reflect the updated blog list
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+          }
+        
+          return false; // Prevent the form from submitting before confirmation
+        }
+        </script>
+      </form>
+    </div>
+  <% }); %>
+</body>
+</html>

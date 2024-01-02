@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Blogs</title>
+
+    <style>
+        /* Add your CSS styles here */
+        header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+        }
+
+        .header-left p {
+            font-weight: bold;
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .header-right a {
+            color: white;
+            margin-left: 10px;
+            text-decoration: none;
+        }
+
+        h1, p {
+            text-align: center;
+        }
+
+        form {
+            max-width: 400px;
+            margin: auto;
+            margin-bottom: 20px;
+        }
+
+        #blogs-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .blog-container {
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <p>Cyber Memoirs</p>
+        </div>
+        <div class="header-right">
+            <a href="/logout">Logout</a>
+            <a href="/user-blogs">Your Blogs</a>
+            <a href="/profile">Profile</a>
+            <a href="/category-blogs">Search By category</a>
+
+        </div>
+    </header>
+
+    <h1>Category Blogs</h1>
+
+    <!-- Category Search Form -->
+    <form id="category-form">
+        <label for="categoryInput">Enter Category:</label>
+        <input type="text" id="categoryInput" name="categoryInput" required>
+        <button type="submit">Show Blogs</button>
+    </form>
+
+    <!-- Display blogs based on the selected category -->
+    <div id="blogs-container"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const categoryForm = document.getElementById('category-form');
+
+            // Define the function to fetch and display blogs based on the selected category
+            const showCategoryBlogs = async (category) => {
+                try {
+                    const response = await fetch(`/category-blogs/${encodeURIComponent(category)}`);
+                    const blogs = await response.json();
+                    const blogsContainer = document.getElementById('blogs-container');
+
+                    // Clear the container
+                    blogsContainer.innerHTML = '';
+
+                    blogs.forEach(blog => {
+                        const blogContainer = document.createElement('div');
+                        blogContainer.className = 'blog-container';
+
+                        blogContainer.innerHTML = `
+                            <h2>${blog.title}</h2>
+                            <p>Category: ${blog.category}</p>
+                            <p>Author: ${blog.author_name}</p>
+                            <p>Description: ${blog.desc}</p>
+                            <p>Likes: <span id="likes-count-${blog._id}">${blog.likes.length}</span></p>
+                            <p>Comments: <span id="comments-count-${blog._id}">${blog.comments.length}</span></p>
+                            ${blog.Blog_album.length > 0 ? `<img src="${blog.Blog_album[0]}" alt="Blog Image">` : ''}
+                            <div id="comments-container-${blog._id}"></div>
+                            <button class="show-comments-btn" onclick="showComments('${blog._id}')">Show Comments</button>
+                            <button onclick="likeBlog('${blog._id}')">Like</button>
+                            <button onclick="commentOnBlog('${blog._id}')">Comment</button>
+                            <hr>
+                        `;
+
+                        blogsContainer.appendChild(blogContainer);
+                    });
+                } catch (error) {
+                    console.error('Error fetching blogs:', error);
+                }
+            };
+
+            // Event listener for category form submission
+            categoryForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const categoryInput = document.getElementById('categoryInput').value;
+                showCategoryBlogs(categoryInput);
+            });
+
+            // Fetch and display blogs on page load (initially all blogs)
+            showCategoryBlogs('');
+        });
+
+        // Define your likeBlog, commentOnBlog, and showComments functions here
+        // ...
+        async function likeBlog(blogId) {
+                try {
+                    const response = await fetch(`/like-blog/${blogId}`, {
+                        method: 'POST',
+                        credentials: 'include',
+                    });
+                    const result = await response.json();
+                    console.log(result);
+        
+                    // Update the likes count
+                    const likesCountElement = document.getElementById(`likes-count-${blogId}`);
+                    likesCountElement.textContent = result.likesCount;
+                } catch (error) {
+                    console.error('Error liking blog:', error);
+                }
+            }
+        
+            async function commentOnBlog(blogId) {
+                try {
+                    const comment = prompt('Enter your comment:');
+                    if (comment) {
+                        const response = await fetch(`/comment-blog/${blogId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ comment }), // Send comment as an object
+                            credentials: 'include',
+                        });
+                        const result = await response.json();
+                        console.log(result);
+        
+                        // Update the comments count
+                        const commentsCountElement = document.getElementById(`comments-count-${blogId}`);
+                        commentsCountElement.textContent = result.commentsCount;
+                    }
+                } catch (error) {
+                    console.error('Error commenting on blog:', error);
+                }
+            }
+        
+            async function showComments(blogId) {
+                try {
+                    // Fetch comments for the specific blog
+                    const response = await fetch(`/get-comments/${blogId}`);
+                    const comments = await response.json();
+        
+                    // Get the container where comments will be displayed
+                    const commentsContainer = document.getElementById(`comments-container-${blogId}`);
+        
+                    // Check if the container exists
+                    if (!commentsContainer) {
+                        console.error(`Comments container not found for blogId: ${blogId}`);
+                        return;
+                    }
+        
+                    // Clear existing comments
+                    commentsContainer.innerHTML = '';
+        
+                    // Iterate over comments and append them to the container
+                    comments.forEach(comment => {
+                        const commentElement = document.createElement('p');
+                        commentElement.innerHTML = `<strong>${comment.commenter}:</strong> ${comment.text}`;
+                        commentsContainer.appendChild(commentElement);
+                    });
+                } catch (error) {
+                    console.error('Error fetching comments:', error);
+                }
+            }
+    </script>
+</body>
+</html>
